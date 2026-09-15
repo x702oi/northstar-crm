@@ -23,7 +23,7 @@ COPY --chown=frappe:frappe northstar_crm /tmp/northstar_crm/northstar_crm
 RUN cd /home/frappe/frappe-bench && \
     cp -a /tmp/northstar_crm apps/northstar_crm && \
     ./env/bin/pip install --no-cache-dir -e apps/northstar_crm && \
-    if ! grep -Fxq northstar_crm sites/apps.txt; then printf '%s\n' northstar_crm >> sites/apps.txt; fi && \
+    if ! grep -Fxq northstar_crm sites/apps.txt; then printf '\n%s\n' northstar_crm >> sites/apps.txt; fi && \
     bench build --app northstar_crm && \
     echo '{}' > sites/common_site_config.json && \
     find apps -mindepth 1 -path '*/.git' -prune -exec rm -rf {} +
