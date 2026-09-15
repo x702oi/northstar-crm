@@ -1,0 +1,15 @@
+{
+  "source_system": "website",
+  "event_type": "lead.created",
+  "idempotency_key": "website-lead-2026-00001",
+  "payload": {
+    "lead_name": "Aisha Alharbi",
+    "organization_name": "Horizon Industries",
+    "email": "aisha@example.com",
+    "mobile_no": "+966500000000",
+    "source": "Website",
+    "business_need": "Consolidate customer data and sales forecasting.",
+    "estimated_value": 325000,
+    "currency": "SAR"
+  }
+}

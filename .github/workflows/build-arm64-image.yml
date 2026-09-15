@@ -1,0 +1,28 @@
+name: Build / Northstar Multi-Architecture Image
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build-image:
+    uses: frappe/frappe_docker/.github/workflows/app-build-image.yml@main
+    with:
+      app_name: northstar_crm
+      app_repo: ${{ github.repository }}
+      app_ref: ${{ github.sha }}
+      frappe_ref: version-16
+      frappe_image_prefix: ghcr.io/frappe
+      image_name: ghcr.io/${{ github.repository_owner }}/northstar-crm
+      image_tag: latest
+      registry: ghcr.io
+      push: true
+      platforms: linux/amd64

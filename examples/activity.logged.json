@@ -1,0 +1,14 @@
+{
+  "source_system": "telephony",
+  "event_type": "activity.logged",
+  "idempotency_key": "call-event-2026-00001",
+  "payload": {
+    "activity_type": "Call",
+    "subject": "Discovery call",
+    "reference_doctype": "CRM Opportunity",
+    "reference_name": "OPP-2026-00001",
+    "status": "Completed",
+    "notes": "Customer confirmed the target launch window.",
+    "external_event_id": "tel-84930"
+  }
+}

@@ -1,0 +1,42 @@
+[
+  {
+    "doctype": "Role",
+    "name": "CRM Sales User",
+    "role_name": "CRM Sales User",
+    "desk_access": 1,
+    "disabled": 0,
+    "is_custom": 0
+  },
+  {
+    "doctype": "Role",
+    "name": "CRM Sales Manager",
+    "role_name": "CRM Sales Manager",
+    "desk_access": 1,
+    "disabled": 0,
+    "is_custom": 0
+  },
+  {
+    "doctype": "Role",
+    "name": "CRM Analyst",
+    "role_name": "CRM Analyst",
+    "desk_access": 1,
+    "disabled": 0,
+    "is_custom": 0
+  },
+  {
+    "doctype": "Role",
+    "name": "CRM Compliance Manager",
+    "role_name": "CRM Compliance Manager",
+    "desk_access": 1,
+    "disabled": 0,
+    "is_custom": 0
+  },
+  {
+    "doctype": "Role",
+    "name": "CRM Integration User",
+    "role_name": "CRM Integration User",
+    "desk_access": 1,
+    "disabled": 0,
+    "is_custom": 0
+  }
+]

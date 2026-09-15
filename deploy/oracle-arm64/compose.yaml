@@ -1,0 +1,287 @@
+name: northstar-crm
+
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "5"
+
+x-frappe-service: &frappe-service
+  image: ${CUSTOM_IMAGE:?Set CUSTOM_IMAGE in northstar.env}
+  platform: linux/arm64
+  pull_policy: ${PULL_POLICY:-always}
+  restart: unless-stopped
+  logging: *default-logging
+  networks:
+    - frappe
+  volumes:
+    - sites:/home/frappe/frappe-bench/sites
+    - logs:/home/frappe/frappe-bench/logs
+
+x-frappe-environment: &frappe-environment
+  FRAPPE_REDIS_CACHE: redis://redis-cache:6379
+  FRAPPE_REDIS_QUEUE: redis://redis-queue:6379
+
+services:
+  db:
+    image: ${MARIADB_IMAGE:-mariadb:11.8}
+    platform: linux/arm64
+    restart: unless-stopped
+    logging: *default-logging
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --skip-character-set-client-handshake
+      - --innodb-buffer-pool-size=1G
+      - --max-connections=100
+    environment:
+      MARIADB_AUTO_UPGRADE: "1"
+      MARIADB_ROOT_PASSWORD_FILE: /run/secrets/db_root_password
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      start_period: 20s
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    networks:
+      - frappe
+    volumes:
+      - db-data:/var/lib/mysql
+    secrets:
+      - db_root_password
+
+  redis-cache:
+    image: ${REDIS_IMAGE:-redis:8.6-alpine}
+    platform: linux/arm64
+    restart: unless-stopped
+    logging: *default-logging
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    networks:
+      - frappe
+
+  redis-queue:
+    image: ${REDIS_IMAGE:-redis:8.6-alpine}
+    platform: linux/arm64
+    restart: unless-stopped
+    logging: *default-logging
+    command: ["redis-server", "--appendonly", "yes"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    networks:
+      - frappe
+    volumes:
+      - redis-queue-data:/data
+
+  configurator:
+    <<: *frappe-service
+    profiles: ["setup"]
+    restart: "no"
+    entrypoint: ["bash", "-euc"]
+    command:
+      - |
+        ls -1 apps > sites/apps.txt
+        bench set-config -g db_host "$${DB_HOST}"
+        bench set-config -gp db_port "$${DB_PORT}"
+        bench set-config -g redis_cache "redis://$${REDIS_CACHE}"
+        bench set-config -g redis_queue "redis://$${REDIS_QUEUE}"
+        bench set-config -g redis_socketio "redis://$${REDIS_QUEUE}"
+        bench set-config -gp socketio_port "$${SOCKETIO_PORT}"
+        if command -v chromium-headless-shell >/dev/null 2>&1; then
+          bench set-config -g chromium_path "$$(command -v chromium-headless-shell)"
+        fi
+    environment:
+      DB_HOST: db
+      DB_PORT: "3306"
+      REDIS_CACHE: redis-cache:6379
+      REDIS_QUEUE: redis-queue:6379
+      SOCKETIO_PORT: "9000"
+
+  site-init:
+    <<: *frappe-service
+    profiles: ["setup"]
+    restart: "no"
+    entrypoint: ["bash", "-euc"]
+    command:
+      - |
+        wait-for-it -t 180 db:3306
+        wait-for-it -t 180 redis-cache:6379
+        wait-for-it -t 180 redis-queue:6379
+        until jq -e '.db_host and .redis_cache and .redis_queue' sites/common_site_config.json >/dev/null 2>&1; do
+          sleep 2
+        done
+        if [ ! -f "sites/$${SITE_NAME}/site_config.json" ]; then
+          bench new-site "$${SITE_NAME}" \
+            --mariadb-user-host-login-scope='%' \
+            --db-root-username=root \
+            --db-root-password="$$(cat /run/secrets/db_root_password)" \
+            --admin-password="$$(cat /run/secrets/admin_password)" \
+            --set-default
+        fi
+        if ! bench --site "$${SITE_NAME}" list-apps --format text | grep -Fxq northstar_crm; then
+          bench --site "$${SITE_NAME}" install-app northstar_crm
+        fi
+        bench --site "$${SITE_NAME}" migrate
+        bench --site "$${SITE_NAME}" enable-scheduler
+        bench --site "$${SITE_NAME}" set-config host_name "https://$${SITE_NAME}"
+    environment:
+      <<: *frappe-environment
+      SITE_NAME: ${SITE_NAME:?Set SITE_NAME in northstar.env}
+    networks:
+      - frappe
+    secrets:
+      - db_root_password
+      - admin_password
+
+  backend:
+    <<: *frappe-service
+    environment:
+      <<: *frappe-environment
+      DB_HOST: db
+      DB_PORT: "3306"
+      GUNICORN_WORKERS: ${GUNICORN_WORKERS:-2}
+      GUNICORN_THREADS: ${GUNICORN_THREADS:-2}
+      GUNICORN_TIMEOUT: ${GUNICORN_TIMEOUT:-120}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis-cache:
+        condition: service_healthy
+      redis-queue:
+        condition: service_healthy
+
+  websocket:
+    <<: *frappe-service
+    command: ["node", "/home/frappe/frappe-bench/apps/frappe/socketio.js"]
+    environment:
+      <<: *frappe-environment
+    depends_on:
+      redis-cache:
+        condition: service_healthy
+      redis-queue:
+        condition: service_healthy
+
+  queue-short:
+    <<: *frappe-service
+    command: ["bench", "worker", "--queue", "short,default"]
+    environment:
+      <<: *frappe-environment
+    depends_on:
+      db:
+        condition: service_healthy
+      redis-cache:
+        condition: service_healthy
+      redis-queue:
+        condition: service_healthy
+
+  queue-long:
+    <<: *frappe-service
+    command: ["bench", "worker", "--queue", "long,default,short"]
+    environment:
+      <<: *frappe-environment
+    depends_on:
+      db:
+        condition: service_healthy
+      redis-cache:
+        condition: service_healthy
+      redis-queue:
+        condition: service_healthy
+
+  scheduler:
+    <<: *frappe-service
+    command: ["bench", "schedule"]
+    environment:
+      <<: *frappe-environment
+    depends_on:
+      db:
+        condition: service_healthy
+      redis-cache:
+        condition: service_healthy
+      redis-queue:
+        condition: service_healthy
+
+  frontend:
+    <<: *frappe-service
+    command: ["nginx-entrypoint.sh"]
+    environment:
+      BACKEND: backend:8000
+      SOCKETIO: websocket:9000
+      FRAPPE_SITE_NAME_HEADER: ${SITE_NAME:?Set SITE_NAME in northstar.env}
+      UPSTREAM_REAL_IP_ADDRESS: ${DOCKER_SUBNET:-172.31.250.0/24}
+      UPSTREAM_REAL_IP_HEADER: X-Forwarded-For
+      UPSTREAM_REAL_IP_RECURSIVE: "on"
+      PROXY_READ_TIMEOUT: "120"
+      CLIENT_MAX_BODY_SIZE: ${CLIENT_MAX_BODY_SIZE:-50m}
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=northstar-frappe
+      - "traefik.http.routers.northstar.rule=Host(`${SITE_NAME}`)"
+      - traefik.http.routers.northstar.entrypoints=websecure
+      - traefik.http.routers.northstar.tls=true
+      - traefik.http.routers.northstar.tls.certresolver=letsencrypt
+      - traefik.http.routers.northstar.middlewares=northstar-compress
+      - traefik.http.middlewares.northstar-compress.compress=true
+      - traefik.http.services.northstar.loadbalancer.server.port=8080
+    depends_on:
+      - backend
+      - websocket
+
+  proxy:
+    image: ${TRAEFIK_IMAGE:-traefik:v3.7}
+    platform: linux/arm64
+    restart: unless-stopped
+    logging: *default-logging
+    security_opt:
+      - no-new-privileges:true
+    command:
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      - --entrypoints.web.address=:80
+      - --entrypoints.web.http.underscoreHeadersStrategy=delete
+      - --entrypoints.web.http.redirections.entrypoint.to=websecure
+      - --entrypoints.web.http.redirections.entrypoint.scheme=https
+      - --entrypoints.websecure.address=:443
+      - --entrypoints.websecure.http.underscoreHeadersStrategy=delete
+      - --certificatesresolvers.letsencrypt.acme.email=${LETSENCRYPT_EMAIL:?Set LETSENCRYPT_EMAIL in northstar.env}
+      - --certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json
+      - --certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web
+      - --accesslog=true
+      - --log.level=INFO
+    ports:
+      - "80:80"
+      - "443:443"
+    networks:
+      - frappe
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - cert-data:/letsencrypt
+    depends_on:
+      - frontend
+
+volumes:
+  cert-data:
+  db-data:
+  logs:
+  redis-queue-data:
+  sites:
+
+networks:
+  frappe:
+    name: northstar-frappe
+    driver: bridge
+    ipam:
+      config:
+        - subnet: ${DOCKER_SUBNET:-172.31.250.0/24}
+
+secrets:
+  admin_password:
+    file: ./secrets/admin_password
+  db_root_password:
+    file: ./secrets/db_root_password

@@ -1,0 +1,27 @@
+{
+  "doctype": "DocType",
+  "name": "CRM Stage History",
+  "module": "Northstar CRM",
+  "autoname": "hash",
+  "track_changes": 0,
+  "sort_field": "changed_on",
+  "sort_order": "DESC",
+  "field_order": ["opportunity", "from_stage", "to_stage", "changed_on", "changed_by", "duration_hours", "reason"],
+  "fields": [
+    {"fieldname": "opportunity", "fieldtype": "Link", "label": "Opportunity", "options": "CRM Opportunity", "reqd": 1, "in_list_view": 1, "in_standard_filter": 1},
+    {"fieldname": "from_stage", "fieldtype": "Link", "label": "From Stage", "options": "CRM Pipeline Stage", "in_list_view": 1},
+    {"fieldname": "to_stage", "fieldtype": "Link", "label": "To Stage", "options": "CRM Pipeline Stage", "reqd": 1, "in_list_view": 1},
+    {"fieldname": "changed_on", "fieldtype": "Datetime", "label": "Changed On", "reqd": 1, "in_list_view": 1},
+    {"fieldname": "changed_by", "fieldtype": "Link", "label": "Changed By", "options": "User", "reqd": 1},
+    {"fieldname": "duration_hours", "fieldtype": "Float", "label": "Hours in Previous Stage", "read_only": 1},
+    {"fieldname": "reason", "fieldtype": "Small Text", "label": "Reason"}
+  ],
+  "permissions": [
+    {"role": "CRM Sales User", "read": 1},
+    {"role": "CRM Sales Manager", "read": 1, "export": 1, "report": 1},
+    {"role": "CRM Analyst", "read": 1, "export": 1, "report": 1},
+    {"role": "CRM Compliance Manager", "read": 1, "export": 1, "report": 1},
+    {"role": "System Manager", "read": 1, "export": 1, "report": 1}
+  ]
+}
+

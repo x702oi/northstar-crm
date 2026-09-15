@@ -1,0 +1,30 @@
+{
+  "doctype": "DocType",
+  "name": "CRM Forecast Snapshot",
+  "module": "Northstar CRM",
+  "autoname": "format:FCS-.YYYY.-.#####",
+  "track_changes": 0,
+  "sort_field": "snapshot_date",
+  "sort_order": "DESC",
+  "field_order": ["snapshot_date", "scope", "scope_value", "currency", "pipeline_amount", "weighted_forecast", "committed_amount", "won_amount", "open_opportunities", "stage_breakdown", "calculation_version"],
+  "fields": [
+    {"fieldname": "snapshot_date", "fieldtype": "Date", "label": "Snapshot Date", "reqd": 1, "in_list_view": 1},
+    {"fieldname": "scope", "fieldtype": "Select", "label": "Scope", "options": "Company\nTeam\nOwner\nTerritory", "default": "Company", "reqd": 1, "in_list_view": 1},
+    {"fieldname": "scope_value", "fieldtype": "Data", "label": "Scope Value"},
+    {"fieldname": "currency", "fieldtype": "Link", "label": "Currency", "options": "Currency", "default": "SAR"},
+    {"fieldname": "pipeline_amount", "fieldtype": "Currency", "label": "Pipeline Amount", "options": "currency", "read_only": 1},
+    {"fieldname": "weighted_forecast", "fieldtype": "Currency", "label": "Weighted Forecast", "options": "currency", "read_only": 1},
+    {"fieldname": "committed_amount", "fieldtype": "Currency", "label": "Committed Amount", "options": "currency", "read_only": 1},
+    {"fieldname": "won_amount", "fieldtype": "Currency", "label": "Won Amount", "options": "currency", "read_only": 1},
+    {"fieldname": "open_opportunities", "fieldtype": "Int", "label": "Open Opportunities", "read_only": 1},
+    {"fieldname": "stage_breakdown", "fieldtype": "JSON", "label": "Stage Breakdown", "read_only": 1},
+    {"fieldname": "calculation_version", "fieldtype": "Data", "label": "Calculation Version", "default": "1.0", "read_only": 1}
+  ],
+  "permissions": [
+    {"role": "CRM Sales User", "read": 1},
+    {"role": "CRM Sales Manager", "read": 1, "export": 1, "report": 1},
+    {"role": "CRM Analyst", "read": 1, "export": 1, "report": 1},
+    {"role": "System Manager", "read": 1, "export": 1, "report": 1}
+  ]
+}
+

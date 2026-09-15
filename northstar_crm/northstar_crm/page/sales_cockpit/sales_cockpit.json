@@ -1,0 +1,16 @@
+{
+  "doctype": "Page",
+  "name": "sales-cockpit",
+  "page_name": "sales-cockpit",
+  "module": "Northstar CRM",
+  "title": "Sales Cockpit",
+  "standard": "Yes",
+  "system_page": 0,
+  "roles": [
+    {"role": "CRM Sales User"},
+    {"role": "CRM Sales Manager"},
+    {"role": "CRM Analyst"},
+    {"role": "CRM Compliance Manager"},
+    {"role": "System Manager"}
+  ]
+}

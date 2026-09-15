@@ -1,0 +1,33 @@
+{
+  "doctype": "DocType",
+  "name": "CRM Consent",
+  "module": "Northstar CRM",
+  "autoname": "format:CNS-.YYYY.-.#####",
+  "title_field": "purpose",
+  "track_changes": 1,
+  "sort_field": "captured_on",
+  "sort_order": "DESC",
+  "field_order": ["contact", "purpose", "channel", "lawful_basis", "status", "captured_on", "valid_until", "revoked_on", "source", "evidence_asset", "privacy_notice_version", "notes"],
+  "fields": [
+    {"fieldname": "contact", "fieldtype": "Link", "label": "Contact", "options": "CRM Contact", "reqd": 1, "in_list_view": 1, "in_standard_filter": 1},
+    {"fieldname": "purpose", "fieldtype": "Select", "label": "Purpose", "options": "Sales Follow-up\nMarketing Email\nMarketing SMS\nCustomer Research\nEvent Communication\nData Enrichment", "reqd": 1, "in_list_view": 1},
+    {"fieldname": "channel", "fieldtype": "Select", "label": "Channel", "options": "Email\nPhone\nSMS\nWhatsApp\nAll", "reqd": 1},
+    {"fieldname": "lawful_basis", "fieldtype": "Select", "label": "Lawful Basis", "options": "Consent\nContract\nLegitimate Interest\nLegal Obligation", "default": "Consent", "reqd": 1},
+    {"fieldname": "status", "fieldtype": "Select", "label": "Status", "options": "Active\nExpiring\nExpired\nRevoked", "default": "Active", "reqd": 1, "in_list_view": 1},
+    {"fieldname": "captured_on", "fieldtype": "Datetime", "label": "Captured On", "reqd": 1},
+    {"fieldname": "valid_until", "fieldtype": "Date", "label": "Valid Until"},
+    {"fieldname": "revoked_on", "fieldtype": "Datetime", "label": "Revoked On", "depends_on": "eval:doc.status=='Revoked'"},
+    {"fieldname": "source", "fieldtype": "Select", "label": "Capture Source", "options": "Web Form\nEmail\nPhone\nPaper Form\nAPI\nImported", "reqd": 1},
+    {"fieldname": "evidence_asset", "fieldtype": "Link", "label": "Consent Evidence", "options": "CRM Document Asset"},
+    {"fieldname": "privacy_notice_version", "fieldtype": "Data", "label": "Privacy Notice Version"},
+    {"fieldname": "notes", "fieldtype": "Small Text", "label": "Notes"}
+  ],
+  "permissions": [
+    {"role": "CRM Sales User", "read": 1, "create": 1},
+    {"role": "CRM Sales Manager", "read": 1, "create": 1, "report": 1},
+    {"role": "CRM Analyst", "read": 1, "report": 1},
+    {"role": "CRM Compliance Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "export": 1, "report": 1},
+    {"role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "export": 1, "report": 1}
+  ]
+}
+

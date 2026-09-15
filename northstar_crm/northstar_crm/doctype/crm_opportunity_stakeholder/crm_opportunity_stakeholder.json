@@ -1,0 +1,18 @@
+{
+  "doctype": "DocType",
+  "name": "CRM Opportunity Stakeholder",
+  "module": "Northstar CRM",
+  "istable": 1,
+  "editable_grid": 1,
+  "field_order": ["contact", "role", "influence", "sentiment", "is_decision_maker", "notes"],
+  "fields": [
+    {"fieldname": "contact", "fieldtype": "Link", "label": "Contact", "options": "CRM Contact", "reqd": 1, "in_list_view": 1},
+    {"fieldname": "role", "fieldtype": "Select", "label": "Buying Role", "options": "Decision Maker\nExecutive Sponsor\nChampion\nInfluencer\nEvaluator\nProcurement\nLegal\nEnd User\nBlocker", "in_list_view": 1},
+    {"fieldname": "influence", "fieldtype": "Select", "label": "Influence", "options": "High\nMedium\nLow", "in_list_view": 1},
+    {"fieldname": "sentiment", "fieldtype": "Select", "label": "Sentiment", "options": "Positive\nNeutral\nNegative\nUnknown", "default": "Unknown"},
+    {"fieldname": "is_decision_maker", "fieldtype": "Check", "label": "Decision Maker", "default": 0},
+    {"fieldname": "notes", "fieldtype": "Small Text", "label": "Notes"}
+  ],
+  "permissions": []
+}
+

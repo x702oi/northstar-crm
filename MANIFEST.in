@@ -1,0 +1,6 @@
+include README.md
+include license.txt
+recursive-include docs *.md *.mmd
+recursive-include deploy *.example *.md *.sh *.yaml
+recursive-include examples *.json
+recursive-include northstar_crm *.css *.csv *.html *.ico *.js *.json *.md *.png *.py *.svg *.txt

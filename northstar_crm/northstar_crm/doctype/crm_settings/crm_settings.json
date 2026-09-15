@@ -1,0 +1,33 @@
+{
+  "doctype": "DocType",
+  "name": "CRM Settings",
+  "module": "Northstar CRM",
+  "issingle": 1,
+  "track_changes": 1,
+  "field_order": [
+    "commercial_section", "default_currency", "high_value_threshold", "discount_approval_threshold", "stale_opportunity_days",
+    "content_section", "max_upload_size_mb", "max_extracted_text_chars", "default_document_classification", "require_private_documents",
+    "scoring_section", "hot_lead_score", "warm_lead_score", "enable_realtime_updates"
+  ],
+  "fields": [
+    {"fieldname": "commercial_section", "fieldtype": "Section Break", "label": "Commercial Defaults"},
+    {"fieldname": "default_currency", "fieldtype": "Link", "label": "Default Currency", "options": "Currency", "default": "SAR", "reqd": 1},
+    {"fieldname": "high_value_threshold", "fieldtype": "Currency", "label": "High Value Threshold", "default": 500000, "options": "default_currency"},
+    {"fieldname": "discount_approval_threshold", "fieldtype": "Percent", "label": "Discount Approval Threshold", "default": 10, "reqd": 1},
+    {"fieldname": "stale_opportunity_days", "fieldtype": "Int", "label": "Stale Opportunity After (Days)", "default": 14, "reqd": 1},
+    {"fieldname": "content_section", "fieldtype": "Section Break", "label": "Unstructured Content"},
+    {"fieldname": "max_upload_size_mb", "fieldtype": "Int", "label": "Maximum Upload Size (MB)", "default": 25},
+    {"fieldname": "max_extracted_text_chars", "fieldtype": "Int", "label": "Maximum Extracted Text Characters", "default": 250000},
+    {"fieldname": "default_document_classification", "fieldtype": "Select", "label": "Default Document Classification", "options": "Public\nInternal\nConfidential\nRestricted", "default": "Confidential"},
+    {"fieldname": "require_private_documents", "fieldtype": "Check", "label": "Require Private CRM Documents", "default": 1},
+    {"fieldname": "scoring_section", "fieldtype": "Section Break", "label": "Scoring and Experience"},
+    {"fieldname": "hot_lead_score", "fieldtype": "Int", "label": "Hot Lead Score", "default": 70},
+    {"fieldname": "warm_lead_score", "fieldtype": "Int", "label": "Warm Lead Score", "default": 40},
+    {"fieldname": "enable_realtime_updates", "fieldtype": "Check", "label": "Enable Realtime Pipeline Updates", "default": 1}
+  ],
+  "permissions": [
+    {"role": "CRM Sales Manager", "read": 1},
+    {"role": "CRM Compliance Manager", "read": 1},
+    {"role": "System Manager", "read": 1, "write": 1}
+  ]
+}
